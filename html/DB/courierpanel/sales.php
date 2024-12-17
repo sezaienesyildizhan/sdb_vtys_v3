@@ -293,7 +293,7 @@ if (isset($_POST['deliver'], $_POST['sale_id'])) {
                         <td><?php echo htmlspecialchars($row['Sale_ID'] ?? ''); ?></td>
                         <td><?php echo htmlspecialchars($row['Courier_ID'] ?? ''); ?></td>
                         <td>
-                           <form action="../adminpanel/courier/orderdetail.php" method="GET">
+                           <form action="sales/orderdetail.php" method="GET">
                                 <input type="hidden" name="id" value="<?php echo $row['Sale_ID']; ?>">
                                 
                                 <button type="submit" class="btn btn-info btn-sm">Detaylar</button>
