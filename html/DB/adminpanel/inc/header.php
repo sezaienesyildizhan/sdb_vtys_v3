@@ -24,8 +24,11 @@
             </li>
             <li class="nav-item">
             <a class="nav-link active me-2 fw-bold" href="/db/adminpanel/user.php">Kullanıcılar</a>
-            <!-- sıkça sorulan sorular bunun altında olacak -->
             </li>
+            <li class="nav-item">
+                <a class="nav-link active me-2 fw-bold" href="/db/adminpanel/statistics.php">İstatistikler</a>
+            </li>
+
             
 
             <!-- Dropdown item -->
