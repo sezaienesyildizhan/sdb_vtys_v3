@@ -3,62 +3,114 @@
 include ("../adminpanel/dbcon.php");
 
 // 1. Toplam Kurye Sayısı
-$totalCourierQuery = "SELECT COUNT(*) AS ToplamKurye FROM Couriers;";
-$totalCourier = $connection->query($totalCourierQuery)->fetch_assoc()['ToplamKurye'];
+$totalCourierQuery = "CALL GetTotalCourierCount();";
+$totalCourierResult = mysqli_query($connection, $totalCourierQuery);
+$totalCourier = 0;
 
+if ($totalCourierResult) {
+    // Sütun adını 'ToplamKurye' olarak kullanıyoruz
+    while ($row = mysqli_fetch_assoc($totalCourierResult)) {
+        $totalCourier = $row['ToplamKurye'];
+    }
+    mysqli_free_result($totalCourierResult); // Sonuç kümesini serbest bırak
+}
+// Bağlantıyı temizle
+while (mysqli_more_results($connection)) {
+    mysqli_next_result($connection);
+}
 
 
 // 3. Teslim Edilen Sipariş Sayısı
-$deliveredOrdersQuery = "SELECT COUNT(*) AS TeslimEdilen
-                         FROM Sales s
-                         JOIN SaleStatus ss ON s.SaleStatu_ID = ss.SaleStatu_ID
-                         WHERE ss.SaleStatu_Name = 'TESLIM EDILDI';";
+$deliveredOrdersQuery = "CALL GetDeliveredOrdersCount();";
+$deliveredOrdersResult = mysqli_query($connection, $deliveredOrdersQuery);
 
-$deliveredOrders = $connection->query($deliveredOrdersQuery)->fetch_assoc()['TeslimEdilen'];
+if (!$deliveredOrdersResult) {
+    die("Sorgu hatası: " . mysqli_error($connection));
+}
 
-// 4. Dağıtımda Olan Kurye Sayısı
-$inDeliveryQuery = "SELECT COUNT(DISTINCT Courier_ID) AS DagitimdaOlan 
-                    FROM Sales s 
-                    JOIN SaleStatus ss ON s.SaleStatu_ID = ss.SaleStatu_ID 
-                    WHERE ss.SaleStatu_Name = 'YOLDA';";
-$inDelivery = $connection->query($inDeliveryQuery)->fetch_assoc()['DagitimdaOlan'];
+$deliveredOrders = 0; 
+if ($deliveredOrdersResult) {
+    while ($row = mysqli_fetch_assoc($deliveredOrdersResult)) {
+        $deliveredOrders = $row['TeslimEdilen'];
+    }
+    mysqli_free_result($deliveredOrdersResult);
+}
 
+// Bağlantıyı temizle
+while (mysqli_more_results($connection)) {
+    mysqli_next_result($connection);
+}
 
-// 5. En Çok Satış Yapan Kurye ismi ve satış sayısı
-$mostSalesCourierQuery = "SELECT 
-                        u.User_Name AS KuryeAdi, 
-                        COUNT(s.Sale_ID) AS ToplamSatis
-                        FROM Sales s
-                        JOIN Couriers c ON s.Courier_ID = c.Courier_ID
-                        JOIN Users u ON c.User_ID = u.User_ID
-                        GROUP BY u.User_Name
-                        ORDER BY ToplamSatis DESC
-                        LIMIT 1;";
+// 4. Dağıtımda Olan Kurye Sayısı // inDelivery
+$inDeliveryQuery = "CALL GetCouriersInDeliveryCount();";
+$inDeliveryResult = mysqli_query($connection, $inDeliveryQuery);
+$inDelivery = 0; // Başlangıç değeri
 
-$mostSalesCourier = $connection->query($mostSalesCourierQuery)->fetch_assoc();
+if ($inDeliveryResult) {
+    while ($row = mysqli_fetch_assoc($inDeliveryResult)) {
+        // 'DagitimdaOlan' sütunundan değeri alıyoruz
+        $inDelivery = $row['DagitimdaOlan'];
+    }
+    mysqli_free_result($inDeliveryResult); // Sonuç kümesini serbest bırak
+}
 
-$mostSalesCourierName = $mostSalesCourier['KuryeAdi'];
-$mostSalesCourierCount = $mostSalesCourier['ToplamSatis'];
+// Bağlantıyı temizle
+while (mysqli_more_results($connection)) {
+    mysqli_next_result($connection);
+}
+
+// 5. En Çok Satış Yapan Kurye ismi ve satış sayısı // mostSalesCourier
+$mostSalesCourierQuery = "CALL GetTopSalesCourier();";
+$mostSalesCourierResult = mysqli_query($connection, $mostSalesCourierQuery);
+$mostSalesCourierName = "";
+$mostSalesCourierCount = 0;
+if ($mostSalesCourierResult) {
+    while ($row = mysqli_fetch_assoc($mostSalesCourierResult)) {
+        $mostSalesCourierName = $row['KuryeAdi'];
+        $mostSalesCourierCount = $row['ToplamSatis'];
+    }
+    mysqli_free_result($mostSalesCourierResult);
+}
+while (mysqli_more_results($connection)) {
+    mysqli_next_result($connection);
+}
 
 // 6. En çok gelir getiren sipariş
 
-$mostValuedSalesQuery = "SELECT MAX(Sale_TotalPrice) AS EnYuksekTutar 
-                         FROM Sales;";
+$mostValuedSalesQuery = "CALL GetMaxSaleTotalPrice();";
+$mostValuedSalesResult = mysqli_query($connection, $mostValuedSalesQuery);
+$mostValuedSalePrice = 0;
+if ($mostValuedSalesResult) {
+    while ($row = mysqli_fetch_assoc($mostValuedSalesResult)) {
+        $mostValuedSalePrice = $row['EnYuksekTutar'];
+    }
+    mysqli_free_result($mostValuedSalesResult);
+}
 
-$mostValuedSale = $connection->query($mostValuedSalesQuery)->fetch_assoc();
+while (mysqli_more_results($connection)) {
+    mysqli_next_result($connection);
+}
 
-$mostValuedSalePrice = $mostValuedSale['EnYuksekTutar'];
+
 
 
 
 
 // 7. Toplam sipariş
 
-$totalOrdersQuery = "SELECT COUNT(Sale_ID) AS ToplamSatis
-                     FROM Sales";
+$totalOrdersQuery = "CALL GetTotalSalesCount();";
+$totalOrdersResult = mysqli_query($connection, $totalOrdersQuery);
+$totalOrdersCount = 0;
+if ($totalOrdersResult) {
+    while ($row = mysqli_fetch_assoc($totalOrdersResult)) {
+        $totalOrdersCount = $row['ToplamSatis'];
+    }
+    mysqli_free_result($totalOrdersResult);
+}
+while (mysqli_more_results($connection)) {
+    mysqli_next_result($connection);
+}
 
-$totalOrders = $connection->query($totalOrdersQuery)->fetch_assoc();
-$totalOrdersCount = $totalOrders["ToplamSatis"];
 
 
 
@@ -70,18 +122,20 @@ $totalOrdersCount = $totalOrders["ToplamSatis"];
 
 // 9. En çok satılan ürün
 
-$mostOrderedProductQuery = "SELECT 
-                            p.Product_Name AS UrunAdi, 
-                            SUM(si.Quantity) AS ToplamSatisMiktari
-                            FROM SaleItems si
-                            JOIN Products p ON si.Product_ID = p.Product_ID
-                            GROUP BY p.Product_Name
-                            ORDER BY ToplamSatisMiktari DESC
-                            LIMIT 1";
-
-$mostOrderedProduct_ = $connection->query($mostOrderedProductQuery)->fetch_assoc();
-$mostOrderedProductName = $mostOrderedProduct_['UrunAdi'];
-$mostOrderedProductCount = $mostOrderedProduct_['ToplamSatisMiktari'];
+$mostOrderedProductQuery = "CALL GetTopSellingProduct();";
+$mostOrderedProductResult = mysqli_query($connection, $mostOrderedProductQuery);
+$mostOrderedProductName = "";
+$mostOrderedProductCount = 0;
+if ($mostOrderedProductResult) {
+    while ($row = mysqli_fetch_assoc($mostOrderedProductResult)) {
+        $mostOrderedProductName = $row["UrunAdi"];
+        $mostOrderedProductCount = $row["ToplamSatisMiktari"];
+    }
+    mysqli_free_result($mostOrderedProductResult);
+}
+while (mysqli_more_results($connection)) {
+    mysqli_next_result($connection);
+}
 
 
 
