@@ -41,6 +41,9 @@ if (!$result) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kullanıcılar</title>
     <?php require('inc/links.php'); ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/export.js"></script>
 </head>
 <body>
 
@@ -48,7 +51,19 @@ if (!$result) {
 <!-- Header Alanı -->
 
 <div class="container mt-5">
-    <h3 class="mb-3">Kullanıcılar</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h3 class="mb-3">Kullanıcılar</h3>
+            <div class="d-flex">
+                <select id="exportFormat" class="form-select me-2" style="min-width: 150px;">
+                    <option value="xml">XML</option>
+                    <option value="csv">Excel (CSV)</option>
+                    <option value="pdf">PDF</option>
+                    <option value="txt">TXT</option>
+                    <option value="json">JSON</option>
+                </select>
+            <button id="exportButton" class="btn btn-success">Export</button>
+        </div>
+    </div>
     <div id="toolbar">
         <button id="remove" class="btn btn-danger" disabled>
             <i class="fa fa-trash"></i> Seçili Satırları Sil
@@ -149,6 +164,27 @@ if (!$result) {
         $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
             $remove.prop('disabled', !$table.bootstrapTable('getSelections').length);
         });
+    });
+
+    // Export Butonuna Tıklama Olayı
+    document.getElementById('exportButton').addEventListener('click', function () {
+            const format = document.getElementById('exportFormat').value; // Format seçimi
+            const fileName = "users"; // Dosya adı
+            const tableSelector = "table"; // Hedef tablo seçicisi
+
+        if (format === 'csv') {
+            exportTableToCSV(tableSelector, fileName,6);
+        } else if (format === 'xml') {
+            exportTableToXML(tableSelector, fileName,6);
+        } else if (format === 'txt') {
+            exportTableToTXT(tableSelector, fileName,6);
+        } else if (format === 'json') {
+            exportTableToJSON(tableSelector, fileName,6);
+        } else if (format === 'pdf') {
+            exportTableToPDF(tableSelector, fileName,6);
+        } else {
+            alert("Bu format henüz desteklenmiyor!");
+        }
     });
 </script>
 

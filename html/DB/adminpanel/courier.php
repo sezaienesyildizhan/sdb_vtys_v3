@@ -25,18 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['courier_id'], $_POST[
 
 
 // Kuryeleri veritabanından çek
-$query = "
-    SELECT 
-        c.Courier_ID, 
-        u.User_Name AS Ad, 
-        u.User_Surname AS Soyad, 
-        u.User_Username AS KullanıcıAdı, 
-        u.User_PhoneNumber AS Telefon, 
-        c.Courier_IsActive AS Aktif, 
-        al.Action_Note AS GörevDurumu 
-    FROM Couriers c
-    JOIN Users u ON c.User_ID = u.User_ID
-    LEFT JOIN ActionLog al ON c.Courier_ID = al.Courier_ID
+$query = "SELECT c.Courier_ID, u.User_Name AS Ad, u.User_Surname AS Soyad,
+       u.User_Username AS KullanıcıAdı, u.User_PhoneNumber AS Telefon,
+       c.Courier_IsActive AS Aktif, MAX(al.Action_Note) AS GörevDurumu
+       FROM Couriers c
+       JOIN Users u ON c.User_ID = u.User_ID
+       LEFT JOIN ActionLog al ON c.Courier_ID = al.Courier_ID
+       GROUP BY c.Courier_ID, u.User_Name, u.User_Surname, u.User_Username, u.User_PhoneNumber, c.Courier_IsActive;
+
 ";
 $result = mysqli_query($connection, $query);
 
@@ -52,14 +48,30 @@ if (!$result) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kuryeler</title>
     <?php require('inc/links.php'); ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/export.js"></script>
 </head>
 <body>
     <?php require('inc/header.php'); ?>
     <div class="container mt-5">
-        <h3 class="mb-3">Kuryeler</h3>
+        
 
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+            <h3 class="mb-0">Kuryeler</h3>
+            <div class="d-flex">
+                <select id="exportFormat" class="form-select me-2" style="min-width: 150px;">
+                    <option value="xml">XML</option>
+                    <option value="csv">Excel (CSV)</option>
+                    <option value="pdf">PDF</option>
+                    <option value="txt">TXT</option>
+                    <option value="json">JSON</option>
+                </select>
+                <button id="exportButton" class="btn btn-success">Export</button>
+            </div>
+        </div>
 
-        <table
+        <table 
             id="table"
             data-toolbar="#toolbar"
             data-search="true"
@@ -89,7 +101,7 @@ if (!$result) {
                     <th data-field="username" data-sortable="true">Kullanıcı Adı</th>
                     <th data-field="telefon" data-sortable="true">Telefon</th>
                     <th data-field="aktif" data-sortable="true">Aktif/Pasif</th>
-                    <th data-field="gorevDurumu" data-sortable="true">Kurye Görev Durumu</th>
+                    <!-- <th data-field="gorevDurumu" data-sortable="true">Kurye Görev Durumu</th> -->
                     <th data-field="detay">Kurye Detay</th>
                     <th data-field="siparisler">Kurye Siparişleri</th>
                     <th data-field="aktiflik">Kurye Aktif Et</th>
@@ -105,7 +117,7 @@ if (!$result) {
                     <td><?php echo $row['KullanıcıAdı']; ?></td>
                     <td><?php echo $row['Telefon']; ?></td>
                     <td><?php echo ($row['Aktif'] == 1) ? 'Aktif' : 'Pasif'; ?></td>
-                    <td><?php echo $row['GörevDurumu'] ?? 'Görev Yok'; ?></td>
+                    <!-- <td><?php echo $row['GörevDurumu'] ?? 'Görev Yok'; ?></td> -->
                     <td>
                         <a href="courier/courierdetails.php?id=<?php echo $row['Courier_ID']; ?>" class="btn btn-info btn-sm">Detay</a>
                     </td>
@@ -164,6 +176,28 @@ if (!$result) {
             $remove.prop('disabled', !$table.bootstrapTable('getSelections').length);
         });
     });
+
+    // Export Butonuna Tıklama Olayı
+    document.getElementById('exportButton').addEventListener('click', function () {
+            const format = document.getElementById('exportFormat').value; // Format seçimi
+            const fileName = "kuryeler"; // Dosya adı
+            const tableSelector = "table"; // Hedef tablo seçicisi
+
+            if (format === 'csv') {
+                exportTableToCSV(tableSelector, fileName,7);
+            } else if (format === 'xml') {
+                exportTableToXML(tableSelector, fileName,7);
+            } else if (format === 'txt') {
+                exportTableToTXT(tableSelector, fileName,7);
+            } else if (format === 'json') {
+                exportTableToJSON(tableSelector, fileName,7);
+            } else if (format === 'pdf') {
+                exportTableToPDF(tableSelector, fileName,7);
+            } else {
+                alert("Bu format henüz desteklenmiyor!");
+            }
+        });
+
     </script>
 
 

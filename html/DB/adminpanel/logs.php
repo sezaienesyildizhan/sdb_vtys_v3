@@ -30,6 +30,11 @@ if ($locationResult->num_rows > 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log Kayıtları</title>
     <?php require('inc/links.php'); ?> <!-- Bootstrap CSS -->
+    
+    <!-- script js/export.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/export.js"></script>
 </head>
 <body>
     <?php require('inc/header.php'); ?> <!-- Navbar -->
@@ -57,6 +62,21 @@ if ($locationResult->num_rows > 0) {
             <div class="tab-pane fade show active" id="action-log" role="tabpanel">
                 <div class="mb-3">
                     <input type="text" id="actionSearch" class="form-control" placeholder="Action Loglarda Ara...">
+                </div>
+                <!-- exports -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <select id="exportFormatAction" class="form-select"> <!-- ID güncellendi -->
+                            <option value="xml">XML</option>
+                            <option value="csv">Excel (CSV)</option>
+                            <option value="pdf">PDF</option>
+                            <option value="txt">TXT</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button id="exportButtonAction" class="btn btn-success">Export</button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover text-center">
@@ -89,6 +109,22 @@ if ($locationResult->num_rows > 0) {
                 <div class="mb-3">
                     <input type="text" id="locationSearch" class="form-control" placeholder="Location Loglarda Ara...">
                 </div>
+                <!-- exports -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <select id="exportFormatLocation" class="form-select">
+                            <option value="xml">XML</option>
+                            <option value="csv">Excel (CSV)</option>
+                            <option value="pdf">PDF</option>
+                            <option value="txt">TXT</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button id="exportButtonLocation" class="btn btn-success">Export</button>
+                    </div>
+                </div>
+                
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover text-center">
                         <thead class="table-dark">
@@ -134,8 +170,36 @@ if ($locationResult->num_rows > 0) {
             rows.forEach(row => {
                 const rowData = row.innerText.toLowerCase();
                 row.style.display = rowData.includes(searchValue) ? '' : 'none';
-            });
+                    });
+                });
+
+                
+                
+        document.getElementById('exportButtonAction').addEventListener('click', function () {
+            const format = document.getElementById('exportFormatAction').value; // Format seçimi
+            const fileName = "actions"; 
+            const tableSelector = "#action-log table"; 
+
+            exportLogs(format, tableSelector, fileName);
         });
+
+        document.getElementById('exportButtonLocation').addEventListener('click', function () {
+            const format = document.getElementById('exportFormatLocation').value; // Format seçimi
+            const fileName = "locations"; 
+            const tableSelector = "#location-log table"; 
+
+            exportLogs(format, tableSelector, fileName);
+        });
+
+        function exportLogs(format, tableSelector, fileName) {
+            if (format === 'csv') exportTableToCSV(tableSelector, fileName,5);
+            else if (format === 'xml') exportTableToXML(tableSelector, fileName,5);
+            else if (format === 'txt') exportTableToTXT(tableSelector, fileName,5);
+            else if (format === 'json') exportTableToJSON(tableSelector, fileName,5);
+            else if (format === 'pdf') exportTableToPDF(tableSelector, fileName,5);
+            else alert("Bu format henüz desteklenmiyor!");
+        }
+
     </script>
 </body>
 </html>

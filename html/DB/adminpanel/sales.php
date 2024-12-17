@@ -36,6 +36,12 @@ if ($result) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Siparişler</title>
     <?php require('inc/links.php'); ?>
+
+    <!-- for export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="js/export.js"></script>
 </head>
 <body>
     <?php require('inc/header.php'); ?>
@@ -48,6 +54,18 @@ if ($result) {
         <div class="row mb-3">
             <div class="col-md-4">
                 <input type="text" id="searchKuryeName" class="form-control" placeholder="Kurye Adına Göre Ara...">
+            </div>
+            <div class="col-md-4">
+                <select id="exportFormat" class="form-select">
+                    <option value="xml">XML</option>
+                    <option value="csv">Excel (CSV)</option>
+                    <option value="pdf">PDF</option>
+                    <option value="txt">TXT</option>
+                    <option value="json">JSON</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button id="exportButton" class="btn btn-success">Export</button>
             </div>
         </div>
 
@@ -116,6 +134,32 @@ if ($result) {
                 row.style.display = kuryeName.includes(searchValue) ? '' : 'none';
             });
         });
+
+        
+
+
+        // Export Butonuna Tıklama Olayı
+        document.getElementById('exportButton').addEventListener('click', function () {
+            const format = document.getElementById('exportFormat').value; // Format seçimi
+            const fileName = "siparisler"; // Dosya adı
+            const tableSelector = "table"; // Hedef tablo seçicisi
+
+            if (format === 'csv') {
+                exportTableToCSV(tableSelector, fileName,7);
+            } else if (format === 'xml') {
+                exportTableToXML(tableSelector, fileName,7);
+            } else if (format === 'txt') {
+                exportTableToTXT(tableSelector, fileName,7);
+            } else if (format === 'json') {
+                exportTableToJSON(tableSelector, fileName,7);
+            } else if (format === 'pdf') {
+                exportTableToPDF(tableSelector, fileName,7);
+            } else {
+                alert("Bu format henüz desteklenmiyor!");
+            }
+        });
+
+
     </script>
 </body>
 </html>
