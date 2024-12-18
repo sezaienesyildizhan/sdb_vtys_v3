@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if (mysqli_query($connection, $updateQuery)) {
             // Başarı durumunda direkt yönlendirme
-            echo "<script>window.location.href='/db/adminpanel/products.php';</script>";
+            echo "<script>window.location.href='/db/adminpanel/product.php';</script>";
             exit();
         } else {
             $message = "<div class='alert alert-danger text-center'>Güncelleme hatası: " . mysqli_error($connection) . "</div>";
